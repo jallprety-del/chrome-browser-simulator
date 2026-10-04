@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chrome Browser Mock</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: linear-gradient(#dfe7f2, #c9d5eb);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .browser {
+      width: min(1200px, 96vw);
+      height: min(760px, 90vh);
+      background: #f3f5f7;
+      border-radius: 18px 18px 12px 12px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.2);
+      overflow: hidden;
+      border: 1px solid #dfe3e8;
+    }
+
+    .chrome-bar {
+      height: 86px;
+      background: #e8eaee;
+      border-bottom: 1px solid #d5d9de;
+      padding: 10px 18px 8px;
+    }
+
+    .top-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      height: 38px;
+    }
+
+    .window-controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      width: 120px;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .red { background: #f5655d; }
+    .yellow { background: #f5be4f; }
+    .green { background: #63c85a; }
+
+    .tab-strip {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow: hidden;
+    }
+
+    .tab {
+      background: #dfe4ea;
+      border-radius: 12px 12px 0 0;
+      height: 32px;
+      min-width: 180px;
+      max-width: 220px;
+      padding: 0 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+      color: #4d5866;
+      border: 1px solid #d0d5dc;
+      border-bottom: none;
+    }
+
+    .tab.active {
+      background: #f5f7fa;
+      color: #1f2d3d;
+    }
+
+    .tab .favicon {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      margin-right: 8px;
+      display: inline-block;
+      background: linear-gradient(135deg, #4285f4, #34a853);
+      position: relative;
+    }
+
+    .tab .favicon::after {
+      content: "";
+      position: absolute;
+      inset: 2px;
+      border-radius: 2px;
+      background: rgba(255,255,255,0.9);
+      transform: scale(0.7);
+    }
+
+    .tab .close {
+      font-size: 16px;
+      opacity: 0.7;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 8px;
+      padding-left: 8px;
+    }
+
+    .nav-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: transparent;
+      border: none;
+      color: #4f5d6d;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .address-bar {
+      flex: 1;
+      height: 38px;
+      background: #f8f8f8;
+      border-radius: 20px;
+      border: 1px solid #dfe1e4;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      font-size: 15px;
+      color: #3d4651;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
+    }
+
+    .lock {
+      margin-right: 10px;
+      font-size: 15px;
+      color: #46a35a;
+    }
+
+    .actions {
+      width: 120px;
+      display: flex;
+      justify-content: end;
+      align-items: center;
+      gap: 14px;
+      font-size: 18px;
+      color: #4b5663;
+    }
+
+    .page {
+      height: calc(100% - 86px);
+      background: #f9fafb;
+      position: relative;
+    }
+
+    .content {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, #ffffff 0%, #f4f6f9 100%);
+    }
+
+    .page-header {
+      height: 90px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 32px 10px;
+      background: #f3f5f8;
+      border-bottom: 1px solid #e6e9ee;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-weight: 700;
+      color: #2f3b4b;
+      font-size: 20px;
+    }
+
+    .google-logo {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      position: relative;
+      background: conic-gradient(#4285F4 0 25%, #34A853 25% 50%, #FBBC05 50% 75%, #EA4335 75% 100%);
+    }
+
+    .google-logo::after {
+      content: "";
+      position: absolute;
+      inset: 6px;
+      background: white;
+      border-radius: 50%;
+      z-index: 1;
+    }
+
+    .site-menu {
+      display: flex;
+      gap: 20px;
+      color: #556273;
+      font-size: 14px;
+      font-weight: 600;
+      align-items: center;
+    }
+
+    .hero {
+      padding: 38px 60px 0;
+    }
+
+    .search-box {
+      width: 100%;
+      max-width: 760px;
+      height: 58px;
+      border-radius: 30px;
+      background: #fff;
+      border: 1px solid #e2e6eb;
+      box-shadow: 0 6px 18px rgba(31,44,55,0.08);
+      display: flex;
+      align-items: center;
+      padding: 0 18px 0 22px;
+      margin: 0 auto 30px;
+      font-size: 18px;
+      color: #637181;
+    }
+
+    .search-icon {
+      font-size: 20px;
+      margin-right: 12px;
+      color: #5f6d7d;
+    }
+
+    .search-text {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
+    }
+
+    .search-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 18px;
+    }
+
+    .btn {
+      background: #f3f5f8;
+      border: 1px solid #e0e5eb;
+      border-radius: 6px;
+      padding: 12px 18px;
+      color: #3d4856;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .quick-links {
+      margin-top: 34px;
+      display: flex;
+      justify-content: center;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .link-card {
+      width: 160px;
+      height: 84px;
+      background: rgba(255,255,255,0.6);
+      border: 1px solid #e7ebf0;
+      border-radius: 14px;
+      box-shadow: 0 6px 16px rgba(70,86,108,0.04);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: #48586c;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .link-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #d7e7ff, #eaf4ff);
+      display: grid;
+      place-items: center;
+      color: #2c6ae9;
+      font-size: 16px;
+    }
+
+    .result-screen {
+      display: none;
+      width: 100%;
+      height: 100%;
+      background: #fff;
+      padding: 28px 40px;
+      overflow: auto;
+    }
+
+    .results-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .mini-logo {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: conic-gradient(#4285F4 0 25%, #34A853 25% 50%, #FBBC05 50% 75%, #EA4335 75% 100%);
+      position: relative;
+    }
+
+    .mini-logo::after {
+      content: "";
+      position: absolute;
+      inset: 7px;
+      background: white;
+      border-radius: 50%;
+    }
+
+    .search-result-box {
+      width: min(760px, 100%);
+      border: 1px solid #e8ebef;
+      border-radius: 18px;
+      background: #f8fafc;
+      padding: 18px 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+      margin-bottom: 18px;
+    }
+
+    .result-url {
+      color: #1a7f5a;
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+
+    .result-title {
+      color: #1a0dab;
+      font-size: 22px;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+
+    .result-desc {
+      color: #4b5563;
+      line-height: 1.5;
+      font-size: 15px;
+    }
+
+    .visible {
+      display: block;
+    }
+
+    @media (max-width: 900px) {
+      .browser {
+        height: 90vh;
+      }
+
+      .site-menu {
+        display: none;
+      }
+
+      .tab {
+        min-width: 120px;
+      }
+
+      .actions {
+        width: 80px;
+      }
+
+      .hero {
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="browser">
+    <div class="chrome-bar">
+      <div class="top-row">
+        <div class="window-controls">
+          <span class="dot red"></span>
+          <span class="dot yellow"></span>
+          <span class="dot green"></span>
+        </div>
+
+        <div class="tab-strip">
+          <div class="tab active">
+            <div style="display:flex; align-items:center;">
+              <span class="favicon"></span>
+              <span>New Tab</span>
+            </div>
+            <span class="close">×</span>
+          </div>
+          <div class="tab">
+            <div style="display:flex; align-items:center;">
+              <span class="favicon" style="background: linear-gradient(135deg, #fbbc05, #ef5350);"></span>
+              <span>YouTube</span>
+            </div>
+            <span class="close">×</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <button class="nav-btn" type="button" aria-label="Back">‹</button>
+        <button class="nav-btn" type="button" aria-label="Forward">›</button>
+        <div class="address-bar">
+          <span class="lock">🔒</span>
+          <span id="addressText">google.com</span>
+        </div>
+        <div class="actions">
+          <span>⋮</span>
+          <span>⤴</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="page">
+      <div class="content" id="homeScreen">
+        <div class="page-header">
+          <div class="brand">
+            <div class="google-logo"></div>
+            <span>Google</span>
+          </div>
+          <div class="site-menu">
+            <span>Gmail</span>
+            <span>Images</span>
+            <span>⋮</span>
+            <span style="width:32px;height:32px;border-radius:50%;display:inline-block;background:linear-gradient(135deg,#f3c5ff,#7a6ee6);text-align:center;line-height:32px;color:#fff;">A</span>
+          </div>
+        </div>
+
+        <div class="hero">
+          <div class="search-box" id="searchBox" tabindex="0" role="search">
+            <span class="search-icon">⌕</span>
+            <span class="search-text" id="searchText">Search Google or type a URL</span>
+          </div>
+
+          <div class="search-buttons">
+            <button class="btn" id="searchButton" type="button">Google Search</button>
+            <button class="btn" type="button">I'm Feeling Lucky</button>
+          </div>
+
+          <div class="quick-links">
+            <div class="link-card">
+              <div class="link-icon">📧</div>
+              <div>Gmail</div>
+            </div>
+            <div class="link-card">
+              <div class="link-icon">▶</div>
+              <div>YouTube</div>
+            </div>
+            <div class="link-card">
+              <div class="link-icon">📰</div>
+              <div>News</div>
+            </div>
+            <div class="link-card">
+              <div class="link-icon">🗺</div>
+              <div>Maps</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="result-screen" id="resultScreen">
+        <div class="results-header">
+          <div class="mini-logo"></div>
+          <div style="font-size:18px; font-weight:700; color:#3b4a5a;">Search results</div>
+        </div>
+
+        <div class="search-result-box">
+          <div class="result-url">google.com/search?q=chrome</div>
+          <div class="result-title">Chrome Browser – Google</div>
+          <div class="result-desc">
+            Browse the web quickly and safely with a modern browser experience. Chrome is designed to keep your tabs organized, load pages fast, and work smoothly across devices.
+          </div>
+        </div>
+
+        <div class="search-result-box">
+          <div class="result-url">support.google.com/chrome</div>
+          <div class="result-title">Official Chrome help and support</div>
+          <div class="result-desc">
+            Learn how to manage tabs, update Chrome, enable security settings, and troubleshoot common browser issues with easy-to-follow guides.
+          </div>
+        </div>
+
+        <div class="search-result-box">
+          <div class="result-url">chrome.google.com/webstore</div>
+          <div class="result-title">Extensions and apps for Chrome</div>
+          <div class="result-desc">
+            Discover productivity tools, theme packs, and useful enhancements to customize how you browse and work online.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const homeScreen = document.getElementById('homeScreen');
+    const resultScreen = document.getElementById('resultScreen');
+    const searchBox = document.getElementById('searchBox');
+    const searchText = document.getElementById('searchText');
+    const addressText = document.getElementById('addressText');
+    const searchButton = document.getElementById('searchButton');
+
+    function performSearch() {
+      const value = searchText.textContent.trim();
+      const searchValue = value && value !== 'Search Google or type a URL' ? value : 'chrome browser';
+      addressText.textContent = searchValue.toLowerCase().replace(/\s+/g, '.');
+      homeScreen.style.display = 'none';
+      resultScreen.classList.add('visible');
+    }
+
+    searchBox.addEventListener('click', () => {
+      const newQuery = prompt('Search Google or type a URL', searchText.textContent === 'Search Google or type a URL' ? '' : searchText.textContent);
+      if (newQuery !== null && newQuery.trim() !== '') {
+        searchText.textContent = newQuery.trim();
+        performSearch();
+      }
+    });
+
+    searchButton.addEventListener('click', () => {
+      const current = searchText.textContent.trim();
+      const query = current && current !== 'Search Google or type a URL' ? current : 'chrome browser';
+      searchText.textContent = query;
+      performSearch();
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        const current = searchText.textContent.trim();
+        if (current && current !== 'Search Google or type a URL') {
+          performSearch();
+        }
+      }
+    });
+  </script>
+</body>
+</html>
