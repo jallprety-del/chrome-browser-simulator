@@ -248,11 +248,13 @@
       color: #5f6d7d;
     }
 
-    .search-text {
+    .search-input {
+      border: none;
+      outline: none;
       flex: 1;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      font-size: 18px;
+      background: transparent;
+      color: #3d4651;
       min-width: 0;
     }
 
@@ -456,14 +458,21 @@
           </div>
         </div>
 
-        <div class="hero">
-          <div class="search-box" id="searchBox" tabindex="0" role="search">
+        <form class="hero" id="searchForm">
+          <div class="search-box" tabindex="0" role="search">
             <span class="search-icon">⌕</span>
-            <span class="search-text" id="searchText">Search Google or type a URL</span>
+            <input
+              id="searchInput"
+              class="search-input"
+              type="text"
+              value=""
+              placeholder="Search Google or type a URL"
+              aria-label="Search"
+            />
           </div>
 
           <div class="search-buttons">
-            <button class="btn" id="searchButton" type="button">Google Search</button>
+            <button class="btn" id="searchButton" type="submit">Google Search</button>
             <button class="btn" type="button">I'm Feeling Lucky</button>
           </div>
 
@@ -485,7 +494,7 @@
               <div>Maps</div>
             </div>
           </div>
-        </div>
+        </form>
       </div>
 
       <div class="result-screen" id="resultScreen">
@@ -524,40 +533,29 @@
   <script>
     const homeScreen = document.getElementById('homeScreen');
     const resultScreen = document.getElementById('resultScreen');
-    const searchBox = document.getElementById('searchBox');
-    const searchText = document.getElementById('searchText');
+    const searchForm = document.getElementById('searchForm');
+    const searchInput = document.getElementById('searchInput');
     const addressText = document.getElementById('addressText');
-    const searchButton = document.getElementById('searchButton');
 
-    function performSearch() {
-      const value = searchText.textContent.trim();
-      const searchValue = value && value !== 'Search Google or type a URL' ? value : 'chrome browser';
-      addressText.textContent = searchValue.toLowerCase().replace(/\s+/g, '.');
-      homeScreen.style.display = 'none';
-      resultScreen.classList.add('visible');
+    function doSearch(query) {
+      const cleaned = (query || '').trim();
+      const finalQuery = cleaned || 'chrome browser';
+
+      addressText.textContent = finalQuery;
+
+      const googleSearchUrl = 'https://www.google.com/search?q=' + encodeURIComponent(finalQuery);
+      window.location.href = googleSearchUrl;
     }
 
-    searchBox.addEventListener('click', () => {
-      const newQuery = prompt('Search Google or type a URL', searchText.textContent === 'Search Google or type a URL' ? '' : searchText.textContent);
-      if (newQuery !== null && newQuery.trim() !== '') {
-        searchText.textContent = newQuery.trim();
-        performSearch();
-      }
+    searchForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      doSearch(searchInput.value);
     });
 
-    searchButton.addEventListener('click', () => {
-      const current = searchText.textContent.trim();
-      const query = current && current !== 'Search Google or type a URL' ? current : 'chrome browser';
-      searchText.textContent = query;
-      performSearch();
-    });
-
-    document.addEventListener('keydown', (event) => {
+    searchInput.addEventListener('keydown', (event) => {
       if (event.key === 'Enter') {
-        const current = searchText.textContent.trim();
-        if (current && current !== 'Search Google or type a URL') {
-          performSearch();
-        }
+        event.preventDefault();
+        doSearch(searchInput.value);
       }
     });
   </script>
